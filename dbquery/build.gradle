@@ -12,7 +12,7 @@ dependencies {
 
 jar {
 	manifest {
-		attributes 'Main-Class': 'BlobQuery'
+		attributes 'Main-Class': 'DbQuery'
 	}
 
 	from {
