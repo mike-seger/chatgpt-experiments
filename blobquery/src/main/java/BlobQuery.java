@@ -1,12 +1,15 @@
-import oracle.jdbc.pool.OracleConnectionPoolDataSource;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.sql.*;
 
 public class BlobQuery {
 
@@ -41,14 +44,17 @@ public class BlobQuery {
 			SSLContext sslContext = SSLContext.getInstance("TLS");
 			sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
-			// Set the SSL context on the Oracle JDBC driver
+			// Set the SSL context on the default SSL socket factory
+			javax.net.ssl.SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+			System.setProperty("javax.net.ssl.keyStore", keystorePath);
+			System.setProperty("javax.net.ssl.keyStorePassword", keystorePassword);
+			System.setProperty("javax.net.ssl.trustStore", truststorePath);
+			System.setProperty("javax.net.ssl.trustStorePassword", truststorePassword);
+			System.setProperty("javax.net.ssl.SSLSocketFactory", sslSocketFactory.getClass().getName());
+
+			// Open a connection to the database
 			DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-			OracleConnectionPoolDataSource ds = new OracleConnectionPoolDataSource();
-			ds.setURL(url);
-			ds.setUser(username);
-			ds.setPassword(password);
-			ds.setSSLContext(sslContext);
-			Connection conn = ds.getConnection();
+			Connection conn = DriverManager.getConnection(url, username, password);
 
 			// Create a statement
 			PreparedStatement stmt = conn.prepareStatement(query);
