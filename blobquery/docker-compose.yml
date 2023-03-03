@@ -1,0 +1,20 @@
+version: '3'
+services:
+  oracle:
+    image: sath89/oracle-12c
+    ports:
+      - "1521:1521"
+    volumes:
+      - oracle_data:/u01/app/oracle/oradata/XE
+      - ./truststore.jks:/u01/app/oracle/product/12.2.0/xe/network/admin/truststore.jks
+    environment:
+      - ORACLE_ALLOW_REMOTE=true
+      - ORACLE_CHARACTERSET=AL32UTF8
+      - ORACLE_BASE=/u01/app/oracle
+      - ORACLE_HOME=/u01/app/oracle/product/12.2.0/xe
+      - ORACLE_SID=XE
+      - ORACLE_CERTIFICATE_PATH=/u01/app/oracle/product/12.2.0/xe/network/admin/truststore.jks
+      - ORACLE_CERTIFICATE_PASSWORD=secure
+
+volumes:
+  oracle_data:
