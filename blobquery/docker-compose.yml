@@ -1,15 +1,6 @@
 version: '3'
 services:
   oracle:
-    environment:
-      - ORACLE_ALLOW_REMOTE=true
-      - ORACLE_CHARACTERSET=AL32UTF8
-      - ORACLE_BASE=/u01/app/oracle
-      - ORACLE_HOME=/u01/app/oracle/product/12.2.0/xe
-      - ORACLE_SID=XE
-      - ORACLE_CERTIFICATE_PATH=/u01/app/oracle/product/12.2.0/xe/network/admin/truststore.jks
-      - ORACLE_CERTIFICATE_PASSWORD=secure
-  oracle:
     image: wnameless/oracle-xe-11g-r2
     ports:
       - "1521:1521"
@@ -20,6 +11,5 @@ services:
       - JAVA_TOOL_OPTIONS=-Djavax.net.ssl.trustStore=/u01/app/oracle/wallet/truststore.jks -Djavax.net.ssl.trustStorePassword=secure
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./wallet:/u01/app/oracle/wallet
-      - ./truststore.jks:/u01/app/oracle/wallet/truststore.jks
+      - ./jks:/u01/app/oracle/wallet
     restart: always

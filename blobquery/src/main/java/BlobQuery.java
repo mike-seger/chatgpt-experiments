@@ -1,3 +1,7 @@
+import oracle.jdbc.datasource.OracleDataSource;
+import oracle.jdbc.pool.OracleConnectionPoolDataSource;
+
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.KeyStore;
@@ -10,71 +14,83 @@ import javax.net.ssl.TrustManagerFactory;
 
 public class BlobQuery {
 
-    public static void main(String[] args) throws SQLException, IOException, Exception {
-        // Replace the connection details with your own
-        String url = "jdbc:oracle:thin:@//localhost:1521/xe";
-        String username = "system";
-        String password = "oracle";
-        String truststorePath = "./jks/truststore.jks";
-        String truststorePassword = "secure";
-        String keystorePath = "./jks/keystore.jks";
-        String keystorePassword = "secure";
+	public static void main(String[] args) {
+		// Replace the connection details with your own
+		String url = "jdbc:oracle:thin:@//localhost:1521/xe";
+//		String username = "system";
+//		String password = "oracle";
 
-        // Load the truststore
-        KeyStore truststore = KeyStore.getInstance("JKS");
-        truststore.load(new FileInputStream(truststorePath), truststorePassword.toCharArray());
-        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-        trustManagerFactory.init(truststore);
+//		String url = "jdbc:oracle:thin:@localhost:1521/ORCLPDB1";
+		String username = "myuser";
+		String password = "mypassword";
 
-        // Load the keystore
-        KeyStore keystore = KeyStore.getInstance("JKS");
-        keystore.load(new FileInputStream(keystorePath), keystorePassword.toCharArray());
-        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-        keyManagerFactory.init(keystore, keystorePassword.toCharArray());
+		String truststorePath = "./jks/truststore.jks";
+		String truststorePassword = "secure";
+		String keystorePath = "./jks/keystore.jks";
+		String keystorePassword = "secure";
 
-        // Create an SSL context
-        SSLContext sslContext = SSLContext.getInstance("TLS");
-        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+		try {
+			if(args.length!=1) throw new IllegalArgumentException("You must provide a query");
+			String query = args[0];
+			// Load the truststore
+			KeyStore truststore = KeyStore.getInstance("JKS");
+			try (InputStream truststoreInputStream = new FileInputStream(truststorePath)) {
+				truststore.load(truststoreInputStream, truststorePassword.toCharArray());
+			}
+			TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			trustManagerFactory.init(truststore);
 
-        // Set the SSL context on the Oracle JDBC driver
-        DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
-        OracleDataSource ds = new OracleDataSource();
-        ds.setURL(url);
-        ds.setUser(username);
-        ds.setPassword(password);
-        ds.setSSLContext(sslContext);
-        Connection conn = ds.getConnection();
+			// Load the keystore
+			KeyStore keystore = KeyStore.getInstance("JKS");
+			try (InputStream keystoreInputStream = new FileInputStream(keystorePath)) {
+				keystore.load(keystoreInputStream, keystorePassword.toCharArray());
+			}
+			KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+			keyManagerFactory.init(keystore, keystorePassword.toCharArray());
 
-        // Replace the query with your own
-        String query = "SELECT blob_column FROM your_table WHERE your_condition";
+			// Create an SSL context
+			SSLContext sslContext = SSLContext.getInstance("TLS");
+			sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
 
-        // Create a statement
-        PreparedStatement stmt = conn.prepareStatement(query);
+			// Set the SSL context on the Oracle JDBC driver
+			DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+			OracleConnectionPoolDataSource ds = new OracleConnectionPoolDataSource();
+			ds.setURL(url);
+			ds.setUser(username);
+			ds.setPassword(password);
+			ds.setSSLContext(sslContext);
+			Connection conn = ds.getConnection();
 
-        // Execute the query
-        ResultSet rs = stmt.executeQuery();
+			// Create a statement
+			PreparedStatement stmt = conn.prepareStatement(query);
 
-        while (rs.next()) {
-            // Get the BLOB column as an InputStream
-            InputStream is = rs.getBinaryStream(1);
+			// Execute the query
+			ResultSet rs = stmt.executeQuery();
 
-            // Create a buffer to hold the BLOB data
-            byte[] buffer = new byte[1024];
+			while (rs.next()) {
+				// Get the BLOB column as an InputStream
+				InputStream is = rs.getBinaryStream(1);
 
-            // Read the BLOB data into the buffer
-            int bytesRead;
-            while ((bytesRead = is.read(buffer)) != -1) {
-                // Write the BLOB data to stdout
-                System.out.write(buffer, 0, bytesRead);
-            }
+				// Create a buffer to hold the BLOB data
+				byte[] buffer = new byte[1024];
 
-            // Close the InputStream
-            is.close();
-        }
+				// Read the BLOB data into the buffer
+				int bytesRead;
+				while ((bytesRead = is.read(buffer)) != -1) {
+					// Write the BLOB data to stdout
+					System.out.write(buffer, 0, bytesRead);
+				}
 
-        // Close the ResultSet, statement, and connection
-        rs.close();
-        stmt.close();
-        conn.close();
-    }
+				// Close the InputStream
+				is.close();
+			}
+
+			// Close the ResultSet, statement, and connection
+			rs.close();
+			stmt.close();
+			conn.close();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
