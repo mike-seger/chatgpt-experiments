@@ -6,26 +6,20 @@ import javax.net.ssl.TrustManagerFactory;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.security.KeyStore;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
+import java.sql.*;
 
 public class BlobQuery {
 
 	public static void main(String[] args) {
 		String url = "jdbc:oracle:thin:@//localhost:1521/xe";
-
 		String username = "myuser";
 		String password = "mypassword";
-
 		String truststorePath = "./jks/truststore.jks";
 		String truststorePassword = "secure";
 		String keystorePath = "./jks/keystore.jks";
 		String keystorePassword = "secure";
-
 		try {
-			if(args.length!=1) throw new IllegalArgumentException("You must provide a query");
+			if (args.length != 1) throw new IllegalArgumentException("You must provide a query");
 			String query = args[0];
 			// Load the truststore
 			KeyStore truststore = KeyStore.getInstance("JKS");
@@ -61,26 +55,36 @@ public class BlobQuery {
 
 			// Execute the query
 			ResultSet rs = stmt.executeQuery();
-
+			ResultSetMetaData metaData = rs.getMetaData();
+			int columnCount = metaData.getColumnCount();
 			while (rs.next()) {
-				// Get the BLOB column as an InputStream
-				InputStream is = rs.getBinaryStream(1);
+				// Loop through all columns and output their values
+				for (int i = 1; i <= columnCount; i++) {
+					if (metaData.getColumnType(i) == java.sql.Types.BLOB) {
+						// Get the BLOB column as an InputStream
+						InputStream is = rs.getBinaryStream(i);
 
-				// Create a buffer to hold the BLOB data
-				byte[] buffer = new byte[1024];
+						// Create a buffer to hold the BLOB data
+						byte[] buffer = new byte[1024];
 
-				// Read the BLOB data into the buffer
-				int bytesRead;
-				while ((bytesRead = is.read(buffer)) != -1) {
-					// Write the BLOB data to stdout
-					System.out.write(buffer, 0, bytesRead);
-					System.out.println();
+						// Read the BLOB data into the buffer
+						int bytesRead;
+						while ((bytesRead = is.read(buffer)) != -1) {
+							// Write the BLOB data to stdout
+							System.out.write(buffer, 0, bytesRead);
+						}
+
+						// Close the InputStream
+						is.close();
+					} else {
+						// Output the column value as a string
+						System.out.print(rs.getString(i) + "\t");
+					}
 				}
-
-				// Close the InputStream
-				is.close();
+				System.out.println();
 			}
 
+			// Close the ResultSet
 			// Close the ResultSet, statement, and connection
 			rs.close();
 			stmt.close();
