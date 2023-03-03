@@ -1,17 +1,49 @@
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyStore;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.sql.*;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManagerFactory;
 
 public class BlobQuery {
 
-    public static void main(String[] args) throws SQLException, IOException {
+    public static void main(String[] args) throws SQLException, IOException, Exception {
         // Replace the connection details with your own
         String url = "jdbc:oracle:thin:@//localhost:1521/xe";
-        String username = "your_username";
-        String password = "your_password";
+        String username = "system";
+        String password = "oracle";
+        String truststorePath = "./jks/truststore.jks";
+        String truststorePassword = "secure";
+        String keystorePath = "./jks/keystore.jks";
+        String keystorePassword = "secure";
 
-        // Create a connection
-        Connection conn = DriverManager.getConnection(url, username, password);
+        // Load the truststore
+        KeyStore truststore = KeyStore.getInstance("JKS");
+        truststore.load(new FileInputStream(truststorePath), truststorePassword.toCharArray());
+        TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        trustManagerFactory.init(truststore);
+
+        // Load the keystore
+        KeyStore keystore = KeyStore.getInstance("JKS");
+        keystore.load(new FileInputStream(keystorePath), keystorePassword.toCharArray());
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(keystore, keystorePassword.toCharArray());
+
+        // Create an SSL context
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(keyManagerFactory.getKeyManagers(), trustManagerFactory.getTrustManagers(), null);
+
+        // Set the SSL context on the Oracle JDBC driver
+        DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+        OracleDataSource ds = new OracleDataSource();
+        ds.setURL(url);
+        ds.setUser(username);
+        ds.setPassword(password);
+        ds.setSSLContext(sslContext);
+        Connection conn = ds.getConnection();
 
         // Replace the query with your own
         String query = "SELECT blob_column FROM your_table WHERE your_condition";
