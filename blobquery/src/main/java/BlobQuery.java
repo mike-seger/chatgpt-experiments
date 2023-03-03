@@ -1,26 +1,21 @@
-import oracle.jdbc.datasource.OracleDataSource;
 import oracle.jdbc.pool.OracleConnectionPoolDataSource;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.KeyStore;
-import java.security.cert.CertificateException;
-import java.security.cert.X509Certificate;
-import java.sql.*;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.KeyStore;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 
 public class BlobQuery {
 
 	public static void main(String[] args) {
-		// Replace the connection details with your own
 		String url = "jdbc:oracle:thin:@//localhost:1521/xe";
-//		String username = "system";
-//		String password = "oracle";
 
-//		String url = "jdbc:oracle:thin:@localhost:1521/ORCLPDB1";
 		String username = "myuser";
 		String password = "mypassword";
 
@@ -79,6 +74,7 @@ public class BlobQuery {
 				while ((bytesRead = is.read(buffer)) != -1) {
 					// Write the BLOB data to stdout
 					System.out.write(buffer, 0, bytesRead);
+					System.out.println();
 				}
 
 				// Close the InputStream
