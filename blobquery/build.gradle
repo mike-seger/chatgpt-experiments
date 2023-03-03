@@ -1,0 +1,24 @@
+plugins {
+	id 'application'
+}
+
+repositories {
+	jcenter()
+}
+
+dependencies {
+	implementation 'com.oracle.database.jdbc:ojdbc8:12.2.0.1'
+}
+
+jar {
+	manifest {
+		attributes 'Main-Class': 'BlobQuery'
+	}
+
+	from {
+		configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+	}
+
+	exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+	duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+}
