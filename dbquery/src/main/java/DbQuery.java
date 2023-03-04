@@ -8,6 +8,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.util.Scanner;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -42,11 +43,12 @@ public class DbQuery {
 						for (int i = 1; i <= columnCount; i++) {
 							if (metaData.getColumnType(i) == java.sql.Types.BLOB) {
 								try (InputStream is = rs.getBinaryStream(i)) {
-									byte[] buffer = new byte[1024];
-									int bytesRead;
-									while ((bytesRead = is.read(buffer)) != -1) {
-										System.out.write(buffer, 0, bytesRead);
-									}
+									Scanner scanner = new Scanner(is).useDelimiter("\\A");
+									String s = scanner.hasNext() ? scanner.next() : "";
+									s = s.replace("\r", "\\r")
+										.replace("\n", "\\n")
+										.replace("\t", "\\t");
+									System.out.print(s);
 									System.out.print('\t');
 								}
 							} else {
