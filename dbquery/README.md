@@ -1,4 +1,8 @@
-# Running
+# DBQuery
+
+A generic DB Query tool generated with ChatGPT
+
+## Running
 ```
 set -e
 docker-compose up -d
