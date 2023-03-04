@@ -30,8 +30,7 @@ public class DbQuery {
 			if (args.length != 1) throw new IllegalArgumentException("You must provide a query");
 			String query = args[0];
 			setSystemSSLContext(truststorePath, truststorePassword, keystorePath, keystorePassword);
-
-			DriverManager.registerDriver(new oracle.jdbc.driver.OracleDriver());
+			
 			Class.forName(driverClass);
 			try (
 				Connection conn = DriverManager.getConnection(url, username, password);
