@@ -1,6 +1,4 @@
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.sql.Connection;
@@ -8,6 +6,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
+import java.util.Properties;
 import java.util.Scanner;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -15,29 +14,33 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
 public class DbQuery {
-
+	private final static Properties dbProperties = new Properties();
+	private static String dbp(String name) { return dbProperties.get(name)+""; }
+	
 	public static void main(String[] args) {
-		String url = "jdbc:oracle:thin:@//localhost:1521/xe";
-		String username = "myuser";
-		String password = "mypassword";
-		String truststorePath = "./jks/truststore.jks";
-		String truststorePassword = "secure";
-		String keystorePath = "./jks/keystore.jks";
-		String keystorePassword = "secure";
-		String driverClass = "oracle.jdbc.driver.OracleDriver";
-
 		try {
-			if (args.length != 1) throw new IllegalArgumentException("You must provide a query");
+			File dbPropertiesFile = new File("db.properties");
+			if (!dbPropertiesFile.exists())
+				throw new IllegalArgumentException("A db.properties file has not been found");
+			try (FileReader fr = new FileReader(dbPropertiesFile)) { dbProperties.load(fr);	}
+			if (args.length != 1)
+				throw new IllegalArgumentException("You must provide a query");
 			String query = args[0];
-			setSystemSSLContext(truststorePath, truststorePassword, keystorePath, keystorePassword);
-			
-			Class.forName(driverClass);
+			setSystemSSLContext(dbp("truststorePath"), dbp("truststorePassword"),
+					dbp("keystorePath"), dbp("keystorePassword"));
+
+			Class.forName(dbp("driverClass"));
 			try (
-				Connection conn = DriverManager.getConnection(url, username, password);
+				Connection conn = DriverManager.getConnection(dbp("url"), dbp("username"), dbp("password"));
 				PreparedStatement stmt = conn.prepareStatement(query);
 				ResultSet rs = stmt.executeQuery()) {
 					ResultSetMetaData metaData = rs.getMetaData();
 					int columnCount = metaData.getColumnCount();
+					for (int i = 1; i <= columnCount; i++) {
+						System.out.print(metaData.getColumnName(i));
+						System.out.print("\t");
+					}
+					System.out.println();
 					while (rs.next()) {
 						for (int i = 1; i <= columnCount; i++) {
 							if (metaData.getColumnType(i) == java.sql.Types.BLOB) {
