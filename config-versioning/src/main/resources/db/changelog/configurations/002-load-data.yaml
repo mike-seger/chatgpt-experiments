@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: jdoe
+      changes:
+
+#      - loadData:
+#        tableName: config_table1
+#        columns: id, name, value
+#        values:
+#          - 1, x, y
+#          - 2, a, b
+#          - 1, 'config1_name_1', 'config1_value_1'
+#          - 2, 'config1_name_2', 'config1_value_2'
+#    - loadData:
+#        tableName: config_table2
+#        columns: id, name, value
+#        values:
+#        - 1, 'config2_name_1', 'config2_value_1'
+#        - 2, 'config2_name_2', 'config2_value_2'
+#    - loadData:
+#        tableName: config_table3
+#        columns: id, name, value
+#        values:
+#        - 1, 'config3_name_1', 'config3_value_1'
+#        - 2, 'config3_name_2', 'config3_value_2'
+

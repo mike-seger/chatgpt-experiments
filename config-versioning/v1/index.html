@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Config Table 1</title>
+    <link rel="stylesheet" type="text/css" href="https://jspreadsheet.com/v4/jspreadsheet.css">
+</head>
+<body>
+    <div id="spreadsheet"></div>
+    <script src="https://jspreadsheet.com/v4/jspreadsheet.js"></script>
+    <script>
+        const spreadsheet = jspreadsheet(document.getElementById('spreadsheet'), {
+            data: [
+                ['Name', 'Value'],
+                ['Config1', '123'],
+                ['Config2', '456'],
+                ['Config3', '789']
+            ],
+            columns: [
+                {type: 'text'},
+                {type: 'text'}
+            ],
+            onchange: function(instance, cell, col, row, val, label) {
+                // update the corresponding row in the database
+                const id = instance.jexcel.getColumnNameFromId({row: row, col: 0}).replace('A', '');
+                const column = instance.jexcel.getColumnNameFromId({row: row, col: col}).replace(/\d+/g, '');
+                
+                switch (column) {
+                    case 'A':
+                        configService.updateConfigTable1Name(id, val);
+                        break;
+                    case 'B':
+                        configService.updateConfigTable1Value(id, val);
+                        break;
+                }
+            }
+        });
+        
+        // load the data from the database
+        configService.getConfigTable1Data().forEach(row => {
+            spreadsheet.jexcel.setValue(`A${row.id}`, row.name);
+            spreadsheet.jexcel.setValue(`B${row.id}`, row.value);
+        });
+    </script>
+</body>
+</html>
+               
+

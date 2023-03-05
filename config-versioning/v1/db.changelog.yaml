@@ -1,0 +1,100 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: you
+      changes:
+        - createTable:
+            tableName: config_table1
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar(50)
+              - column:
+                  name: value
+                  type: varchar(50)
+              - column:
+                  name: version_id
+                  type: int
+                  foreignKeyName: fk_config_table1_version_id
+                  references:
+                    tableName: config_version_history
+                    columnName: version_id
+              - column:
+                  name: is_active
+                  type: boolean
+        - createTable:
+            tableName: config_table2
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar(50)
+              - column:
+                  name: value
+                  type: varchar(50)
+              - column:
+                  name: version_id
+                  type: int
+                  foreignKeyName: fk_config_table2_version_id
+                  references:
+                    tableName: config_version_history
+                    columnName: version_id
+              - column:
+                  name: is_active
+                  type: boolean
+        - createTable:
+            tableName: config_table3
+            columns:
+              - column:
+                  name: id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar(50)
+              - column:
+                  name: value
+                  type: varchar(50)
+              - column:
+                  name: version_id
+                  type: int
+                  foreignKeyName: fk_config_table3_version_id
+                  references:
+                    tableName: config_version_history
+                    columnName: version_id
+              - column:
+                  name: is_active
+                  type: boolean
+
+  - changeSet:
+      id: 2
+      author: you
+      changes:
+        - createTable:
+            tableName: config_version_history
+            columns:
+              - column:
+                  name: version_id
+                  type: int
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+              - column:
+                  name: version_date
+                  type: timestamp
+              - column:
+                  name: version_notes
+                  type: varchar(200)
