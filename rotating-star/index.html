@@ -3,45 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta viewport="width=device-width, initial-scale=1.0">
-    <title>3D Rotating Star</title>
+    <title>3D Uniform Pixelated Star</title>
     <style>
         body { margin: 0; }
-        canvas { display: block; }
+        canvas { display: block; image-rendering: pixelated; image-rendering: -moz-crisp-edges; image-rendering: crisp-edges; }
     </style>
 </head>
 <body>
     <script src="https://cdn.jsdelivr.net/npm/three@0.141.0/build/three.min.js"></script>
     <script>
-        let scene, camera, renderer, star;
-        let isPaused = false;
+        let scene, camera, renderer, star, pixelatedRenderTarget, pixelatedMaterial, pixelatedMesh, pixelCamera;
 
         function init() {
-            // Create scene
+            // Scene setup
             scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x000000);
 
-            // Create and position camera
+            // Camera setup
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 100;
 
-            // Renderer
+            // Pixel camera setup, orthographic to fit exactly one unit
+            pixelCamera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+            pixelCamera.position.z = 2;
+
+            // Renderer setup
             renderer = new THREE.WebGLRenderer();
             renderer.setSize(window.innerWidth, window.innerHeight);
             document.body.appendChild(renderer.domElement);
 
-            // Create a star
-            star = createStar(40, 20, 8); // Outer radius, inner radius, depth
+            // Low resolution render target
+            const renderTargetSize = 128;
+            pixelatedRenderTarget = new THREE.WebGLRenderTarget(renderTargetSize, renderTargetSize, {
+                minFilter: THREE.NearestFilter,
+                magFilter: THREE.NearestFilter,
+                format: THREE.RGBAFormat
+            });
+
+            // Create a simple plane to show the render target result
+            pixelatedMaterial = new THREE.MeshBasicMaterial({
+                map: pixelatedRenderTarget.texture,
+                side: THREE.DoubleSide
+            });
+            const planeGeometry = new THREE.PlaneGeometry(2, 2); // Plane geometry to match aspect ratio
+            pixelatedMesh = new THREE.Mesh(planeGeometry, pixelatedMaterial);
+            pixelatedMesh.position.set(0, 0, -1); // Positioned right in front of the pixel camera
+            scene.add(pixelatedMesh); // Add to the main scene for simplicity
+
+            // Star creation
+            star = createStar(40, 20, 8);
             scene.add(star);
-
-            // Lighting
-            const light = new THREE.PointLight(0xffffff, 1, 500);
-            light.position.set(50, 50, 50);
-            scene.add(light);
-            const ambientLight = new THREE.AmbientLight(0x404040); // Soft white light
-            scene.add(ambientLight);
-
-            // Handle resizing
-            window.addEventListener('resize', onWindowResize, false);
 
             // Start animation
             animate();
@@ -51,7 +61,6 @@
             const shape = new THREE.Shape();
             const numPoints = 12;
             let skip = false;
-
             for (let i = 0; i < numPoints; i++) {
                 const angle = (i / numPoints) * Math.PI * 2;
                 const r = skip ? innerRadius : outerRadius;
@@ -65,14 +74,9 @@
                 skip = !skip;
             }
 
-            const extrudeSettings = {
-                steps: 2,
-                depth: depth,
-                bevelEnabled: false
-            };
-
+            const extrudeSettings = { steps: 2, depth: depth, bevelEnabled: false };
             const geometry = new THREE.ExtrudeBufferGeometry(shape, extrudeSettings);
-            const material = new THREE.MeshPhongMaterial({ color: 0xffffff });
+            const material = new THREE.MeshBasicMaterial({ color: 0xffffff }); // Use MeshBasicMaterial for uniform color
             return new THREE.Mesh(geometry, material);
         }
 
@@ -83,22 +87,19 @@
         }
 
         function animate() {
-            if (!isPaused) {
-                requestAnimationFrame(animate);
-                star.rotation.x += 0.01; // Rotate around the x-axis
-                star.rotation.y += 0.01; // Rotate around the y-axis
-                renderer.render(scene, camera);
-            }
-        }
+            requestAnimationFrame(animate);
+            star.rotation.x += 0.01;
+            star.rotation.y += 0.01;
 
-        function toggleAnimation() {
-            isPaused = !isPaused;
-            if (!isPaused) {
-                animate();
-            }
-        }
+            // Render scene to low-resolution target
+            renderer.setRenderTarget(pixelatedRenderTarget);
+            renderer.render(scene, camera);
 
-        document.addEventListener('click', toggleAnimation);
+            // Render low-resolution image to screen from pixelScene
+            renderer.setRenderTarget(null);
+            renderer.clear(); // Clear the screen
+            renderer.render(scene, pixelCamera); // Render using the pixel camera
+        }
 
         init();
     </script>
