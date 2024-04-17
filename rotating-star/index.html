@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binary Pixel Art</title>
+    <style>
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            border: 0;
+            width: 1024px; /* Display size */
+            height: 1024px; /* Display size */
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starCanvas" width="128" height="128"></canvas>
+    <script>
+        const canvas = document.getElementById('starCanvas');
+        const ctx = canvas.getContext('2d');
+        ctx.imageSmoothingEnabled = false;
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = 40;
+        let angle = 0;
+        let isPaused = false;
+
+        function drawStar(cx, cy, spikes, outerRadius, innerRadius, initialRotation) {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height); // Ensures background is black
+
+            let rot = initialRotation;
+            let step = Math.PI / spikes;
+            ctx.beginPath();
+            ctx.moveTo(cx + Math.cos(rot) * outerRadius, cy + Math.sin(rot) * outerRadius);
+            for (let i = 0; i < spikes; i++) {
+                rot += step;
+                ctx.lineTo(cx + Math.cos(rot) * innerRadius, cy + Math.sin(rot) * innerRadius);
+                rot += step;
+                ctx.lineTo(cx + Math.cos(rot) * outerRadius, cy + Math.sin(rot) * outerRadius);
+            }
+            ctx.closePath();
+            ctx.fillStyle = 'white';
+            ctx.fill();
+        }
+
+        function enforceBinaryColors() {
+            let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            let data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                // Convert to grayscale using perceived luminance
+                let grayscale = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+                // Enforce binary color
+                let binaryColor = grayscale > 128 ? 255 : 0;
+                data[i] = data[i + 1] = data[i + 2] = binaryColor;
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+
+        function animate() {
+            if (!isPaused) {
+                drawStar(centerX, centerY, 6, radius, radius / 2, angle);
+                enforceBinaryColors(); // Apply binary color filter
+                angle += 3 * Math.PI / 180;
+                requestAnimationFrame(animate);
+            }
+        }
+
+        function toggleAnimation() {
+            isPaused = !isPaused;
+            if (!isPaused) {
+                animate();
+            }
+        }
+
+        canvas.addEventListener('click', toggleAnimation);
+        animate();
+    </script>
+</body>
+</html>
