@@ -5,8 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>6-Pointed Star in Canvas</title>
 <style>
+    body {
+        margin: 0;
+        background-color: black;
+    }
     canvas {
-        border: 1px solid black;
+        display: block;
+        margin: auto;
+        border: 1px solid white;
     }
 </style>
 </head>
@@ -26,13 +32,9 @@
             ctx.lineTo(x + radius * Math.cos(angle), y + radius * Math.sin(angle));
         }
         ctx.closePath();
-        ctx.strokeStyle = 'black';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        ctx.fillStyle = 'white';
+        ctx.fill();
     }
-
-    // Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     // Calculate the center of the canvas
     var centerX = canvas.width / 2;
