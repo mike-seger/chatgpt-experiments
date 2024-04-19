@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Animated 6-Pointed Star</title>
+<title>Animated 6-Pointed Star with Pixelated Filter</title>
 <style>
     body {
         margin: 0;
@@ -14,14 +14,26 @@
         margin: auto;
         border: 1px solid white;
     }
+    #pixelatedLayer {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
 </style>
 </head>
 <body>
 <canvas id="starCanvas" width="300" height="300"></canvas>
+<canvas id="pixelatedLayer" width="300" height="300"></canvas>
 <script>
-    // Get the canvas element
+    // Get the canvas elements
     var canvas = document.getElementById('starCanvas');
     var ctx = canvas.getContext('2d');
+    var pixelatedLayer = document.getElementById('pixelatedLayer');
+    var pixelatedCtx = pixelatedLayer.getContext('2d');
+
+    // Define rectangle dimensions
+    var rwidth = 10;
+    var rheight = 10;
 
     // Define the function to draw a regular 6-pointed star
     function drawStar(x, y, size, angle) {
@@ -46,7 +58,39 @@
     function animate() {
         angle += Math.PI / 60; // Rotate by 3 degrees
         drawStar(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) * 0.4, angle);
+        pixelate();
         requestAnimationFrame(animate);
+    }
+
+    // Pixelate the canvas
+    function pixelate() {
+        pixelatedCtx.clearRect(0, 0, pixelatedLayer.width, pixelatedLayer.height);
+        for (var y = 0; y < canvas.height; y += rheight) {
+            for (var x = 0; x < canvas.width; x += rwidth) {
+                var imageData = ctx.getImageData(x, y, rwidth, rheight);
+                var avgColor = calculateAverageColor(imageData);
+                pixelatedCtx.fillStyle = avgColor;
+                pixelatedCtx.fillRect(x, y, rwidth, rheight);
+            }
+        }
+    }
+
+    // Calculate the average color of a rectangle
+    function calculateAverageColor(imageData) {
+        var r = 0, g = 0, b = 0, a = 0;
+        var count = 0;
+        for (var i = 0; i < imageData.data.length; i += 4) {
+            r += imageData.data[i];
+            g += imageData.data[i + 1];
+            b += imageData.data[i + 2];
+            a += imageData.data[i + 3];
+            count++;
+        }
+        r = Math.round(r / count);
+        g = Math.round(g / count);
+        b = Math.round(b / count);
+        a = Math.round(a / count);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + (a / 255) + ')';
     }
 
     // Start the animation
