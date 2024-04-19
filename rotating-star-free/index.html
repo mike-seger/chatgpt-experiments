@@ -13,27 +13,18 @@
         align-items: center;
         height: 100vh;
     }
-    #canvasContainer {
-        position: relative;
-    }
-    canvas {
-        display: block;
-        margin: auto;
-        border: 1px solid white;
-    }
     #pixelatedLayer {
         position: absolute;
-        top: 0;
-        left: 0;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
         pointer-events: none; /* Ensure the pixelated layer doesn't capture mouse events */
     }
 </style>
 </head>
 <body>
-<div id="canvasContainer">
-    <canvas id="starCanvas" width="300" height="300"></canvas>
-    <canvas id="pixelatedLayer" width="300" height="300"></canvas>
-</div>
+<canvas id="starCanvas" width="300" height="300"></canvas>
+<canvas id="pixelatedLayer" width="300" height="300"></canvas>
 <script>
     // Get the canvas elements
     var canvas = document.getElementById('starCanvas');
@@ -54,13 +45,16 @@
             ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
         }
         ctx.closePath();
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = 'rgb(255, 255, 255)';
         ctx.fill();
         ctx.restore();
     }
 
     // Animate the star
     var angle = 0;
+    var rwhMin = 40;
+    var rwhMax = 80;
+
     function animate() {
         angle += Math.PI / 60; // Rotate by 3 degrees
         drawStar(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) * 0.4, angle);
@@ -71,8 +65,8 @@
     // Pixelate the canvas
     function pixelate() {
         pixelatedCtx.clearRect(0, 0, pixelatedLayer.width, pixelatedLayer.height);
-        var rwidth = 16 + Math.sin(Date.now() / 1000) * 56 + 56; // Vary between 16 and 128 using a sine function
-        var rheight = 16 + Math.sin(Date.now() / 1000 + Math.PI / 2) * 56 + 56; // Offset the sine function for variety
+        var rwidth = rwhMin + Math.sin(Date.now() / 1000) * (rwhMax - rwhMin) + (rwhMax - rwhMin) / 2; // Vary between rwhMin and rwhMax using a sine function
+        var rheight = rwhMin + Math.sin(Date.now() / 1000 + Math.PI / 2) * (rwhMax - rwhMin) + (rwhMax - rwhMin) / 2; // Offset the sine function for variety
         for (var y = 0; y < canvas.height; y += rheight) {
             for (var x = 0; x < canvas.width; x += rwidth) {
                 var imageData = ctx.getImageData(x, y, rwidth, rheight);
@@ -85,20 +79,18 @@
 
     // Calculate the average color of a rectangle
     function calculateAverageColor(imageData) {
-        var r = 0, g = 0, b = 0, a = 0;
+        var r = 0, g = 0, b = 0;
         var count = 0;
         for (var i = 0; i < imageData.data.length; i += 4) {
             r += imageData.data[i];
             g += imageData.data[i + 1];
             b += imageData.data[i + 2];
-            a += imageData.data[i + 3];
             count++;
         }
         r = Math.round(r / count);
         g = Math.round(g / count);
         b = Math.round(b / count);
-        a = Math.round(a / count);
-        return 'rgba(' + r + ',' + g + ',' + b + ',' + (a / 255) + ')';
+        return 'rgba(' + r + ',' + g + ',' + b + ', 1)';
     }
 
     // Start the animation
