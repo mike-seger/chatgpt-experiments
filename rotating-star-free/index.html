@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Animated 6-Pointed Star with Pixelated Filter</title>
+<title>Animated 6-Pointed Star with Dynamic Pixelated Filter</title>
 <style>
     body {
         margin: 0;
@@ -30,10 +30,6 @@
     var ctx = canvas.getContext('2d');
     var pixelatedLayer = document.getElementById('pixelatedLayer');
     var pixelatedCtx = pixelatedLayer.getContext('2d');
-
-    // Define rectangle dimensions
-    var rwidth = 10;
-    var rheight = 10;
 
     // Define the function to draw a regular 6-pointed star
     function drawStar(x, y, size, angle) {
@@ -65,6 +61,8 @@
     // Pixelate the canvas
     function pixelate() {
         pixelatedCtx.clearRect(0, 0, pixelatedLayer.width, pixelatedLayer.height);
+        var rwidth = 16 + Math.sin(Date.now() / 1000) * 56 + 56; // Vary between 16 and 128 using a sine function
+        var rheight = 16 + Math.sin(Date.now() / 1000 + Math.PI / 2) * 56 + 56; // Offset the sine function for variety
         for (var y = 0; y < canvas.height; y += rheight) {
             for (var x = 0; x < canvas.width; x += rwidth) {
                 var imageData = ctx.getImageData(x, y, rwidth, rheight);
