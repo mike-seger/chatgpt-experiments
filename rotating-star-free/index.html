@@ -45,15 +45,15 @@
             ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
         }
         ctx.closePath();
-        ctx.fillStyle = 'rgb(255, 255, 255)';
+        ctx.fillStyle = 'rgb(85, 135, 217)';
         ctx.fill();
         ctx.restore();
     }
 
     // Animate the star
     var angle = 0;
-    var rwhMin = 40;
-    var rwhMax = 80;
+    var rwhMin = 64;
+    var rwhMax = 128;
 
     function animate() {
         angle += Math.PI / 60; // Rotate by 3 degrees
