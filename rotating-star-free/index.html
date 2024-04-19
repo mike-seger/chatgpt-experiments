@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>6-Pointed Star in Canvas</title>
+<title>Animated 6-Pointed Star</title>
 <style>
     body {
         margin: 0;
@@ -24,27 +24,33 @@
     var ctx = canvas.getContext('2d');
 
     // Define the function to draw a regular 6-pointed star
-    function drawStar(x, y, size) {
+    function drawStar(x, y, size, angle) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.rotate(angle);
         ctx.beginPath();
         for (var i = 0; i < 12; i++) {
             var angle = i * Math.PI / 6;
             var radius = size * (i % 2 === 0 ? 1 : 0.5);
-            ctx.lineTo(x + radius * Math.cos(angle), y + radius * Math.sin(angle));
+            ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
         }
         ctx.closePath();
         ctx.fillStyle = 'white';
         ctx.fill();
+        ctx.restore();
     }
 
-    // Calculate the center of the canvas
-    var centerX = canvas.width / 2;
-    var centerY = canvas.height / 2;
+    // Animate the star
+    var angle = 0;
+    function animate() {
+        angle += Math.PI / 60; // Rotate by 3 degrees
+        drawStar(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) * 0.4, angle);
+        requestAnimationFrame(animate);
+    }
 
-    // Calculate the size of the star
-    var starSize = Math.min(canvas.width, canvas.height) * 0.4;
-
-    // Draw the star
-    drawStar(centerX, centerY, starSize);
+    // Start the animation
+    animate();
 </script>
 </body>
 </html>
