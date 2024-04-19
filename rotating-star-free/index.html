@@ -8,6 +8,13 @@
     body {
         margin: 0;
         background-color: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+    #canvasContainer {
+        position: relative;
     }
     canvas {
         display: block;
@@ -18,12 +25,15 @@
         position: absolute;
         top: 0;
         left: 0;
+        pointer-events: none; /* Ensure the pixelated layer doesn't capture mouse events */
     }
 </style>
 </head>
 <body>
-<canvas id="starCanvas" width="300" height="300"></canvas>
-<canvas id="pixelatedLayer" width="300" height="300"></canvas>
+<div id="canvasContainer">
+    <canvas id="starCanvas" width="300" height="300"></canvas>
+    <canvas id="pixelatedLayer" width="300" height="300"></canvas>
+</div>
 <script>
     // Get the canvas elements
     var canvas = document.getElementById('starCanvas');
