@@ -23,8 +23,8 @@
 </style>
 </head>
 <body>
-<canvas id="starCanvas" width="300" height="300"></canvas>
-<canvas id="pixelatedLayer" width="300" height="300"></canvas>
+<canvas id="starCanvas" width="800" height="800"></canvas>
+<canvas id="pixelatedLayer" width="800" height="800"></canvas>
 <script>
     // Get the canvas elements
     var canvas = document.getElementById('starCanvas');
@@ -41,7 +41,8 @@
         ctx.beginPath();
         for (var i = 0; i < 12; i++) {
             var angle = i * Math.PI / 6;
-            var radius = size * (i % 2 === 0 ? 1 : 0.5);
+            // Adjust the size factor to reduce the star's size to fit in the new canvas size
+            var radius = size * (i % 2 === 0 ? 1 : 0.4) * 1.2;  // Reduced radius multiplier
             ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
         }
         ctx.closePath();
@@ -52,21 +53,41 @@
 
     // Animate the star
     var angle = 0;
-    var rwhMin = 64;
-    var rwhMax = 128;
+    var rwhMin = 188;
+    var rwhMax = 192;
+    var cMin = 64;
+    var cMax = 128;
+
+    var lastTime = Date.now();
+    var angleIncrement = Math.PI / 30 * 2; // This controls the rotation speed
+    var currentTime = Date.now();
 
     function animate() {
-        angle += Math.PI / 60; // Rotate by 3 degrees
-        drawStar(canvas.width / 2, canvas.height / 2, Math.min(canvas.width, canvas.height) * 0.4, angle);
-        pixelate();
+        var currentTime = Date.now();
+        var deltaTime = (currentTime - lastTime) / 1000; // Time in seconds since last frame
+        lastTime = currentTime;
+
+        var timeFactor = currentTime / 1000; // Base time factor for oscillations
+
+        // Oscillations for center positions
+        var centerX = cMin + 5*(Math.sin(timeFactor) * (cMax - cMin) / 2.4) + (cMax - cMin) / 2;
+        var centerY = cMin + 5*(Math.sin(timeFactor + Math.PI / 5.3) * (cMax - cMin) / 2) + (cMax - cMin) / 2;
+
+        angle += angleIncrement * deltaTime; // Increment angle based on time to decouple from frame rate
+        drawStar(canvas.width / 2 + centerX - (rwhMax / 2), canvas.height / 2 + centerY - (rwhMax / 2), Math.min(canvas.width, canvas.height) * 0.4, angle);
+        pixelate(currentTime); // Pass currentTime to the pixelate function
         requestAnimationFrame(animate);
     }
 
     // Pixelate the canvas
-    function pixelate() {
+    function pixelate(currentTime) {
         pixelatedCtx.clearRect(0, 0, pixelatedLayer.width, pixelatedLayer.height);
-        var rwidth = rwhMin + Math.sin(Date.now() / 1000) * (rwhMax - rwhMin) + (rwhMax - rwhMin) / 2; // Vary between rwhMin and rwhMax using a sine function
-        var rheight = rwhMin + Math.sin(Date.now() / 1000 + Math.PI / 2) * (rwhMax - rwhMin) + (rwhMax - rwhMin) / 2; // Offset the sine function for variety
+        var timeFactor = currentTime / 3141 * 2; // Use a non-integer period for the oscillation
+
+        var rwidth = rwhMin + (Math.sin(timeFactor * Math.PI) * (rwhMax - rwhMin) / 2) + (rwhMax - rwhMin) / 2;
+        var rheight = rwidth; // Keep using the same value for height to maintain aspect ratio
+        //rwidth *= 2;
+
         for (var y = 0; y < canvas.height; y += rheight) {
             for (var x = 0; x < canvas.width; x += rwidth) {
                 var imageData = ctx.getImageData(x, y, rwidth, rheight);
