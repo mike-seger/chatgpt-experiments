@@ -46,15 +46,18 @@
             ctx.lineTo(radius * Math.cos(angle), radius * Math.sin(angle));
         }
         ctx.closePath();
-        ctx.fillStyle = 'rgb(85, 135, 217)';
+        //ctx.fillStyle = 'rgb(85, 135, 217)';
+        ctx.fillStyle = 'rgb(23, 120, 255)';
         ctx.fill();
         ctx.restore();
     }
 
     // Animate the star
     var angle = 0;
-    var rwhMin = 188;
+    var rwhMin = 192;
     var rwhMax = 192;
+    // var rwhMin = 4;
+    // var rwhMax = 4;
     var cMin = 64;
     var cMax = 128;
 
@@ -62,20 +65,36 @@
     var angleIncrement = Math.PI / 30 * 2; // This controls the rotation speed
     var currentTime = Date.now();
 
+    var centerX = canvas.width / 2;
+    var centerY = canvas.height / 2;
+    var velocityX = 0.3; // Initial horizontal velocity
+    var velocityY = 0.3; // Initial vertical velocity
+    var angleRandomness = 0.2; // Randomness in the bounce angle
+
     function animate() {
         var currentTime = Date.now();
-        var deltaTime = (currentTime - lastTime) / 1000; // Time in seconds since last frame
-        lastTime = currentTime;
+        if (true) {
+            var deltaTime = (currentTime - lastTime) / 1000; // Time in seconds since last frame
+            lastTime = currentTime;
 
-        var timeFactor = currentTime / 1000; // Base time factor for oscillations
+            // Update positions based on velocities
+            centerX += velocityX;
+            centerY += velocityY;
 
-        // Oscillations for center positions
-        var centerX = cMin + 5*(Math.sin(timeFactor) * (cMax - cMin) / 2.4) + (cMax - cMin) / 2;
-        var centerY = cMin + 5*(Math.sin(timeFactor + Math.PI / 5.3) * (cMax - cMin) / 2) + (cMax - cMin) / 2;
+            // Check for collisions with the canvas boundaries
+            if (centerX <= 80 || centerX >= canvas.width-80) {
+                velocityX = -velocityX;
+                velocityX += velocityX * (Math.random() * 2 * angleRandomness - angleRandomness); // Randomize bounce slightly
+            }
+            if (centerY <= 80 || centerY >= canvas.height-80) {
+                velocityY = -velocityY;
+                velocityY += velocityY * (Math.random() * 2 * angleRandomness - angleRandomness); // Randomize bounce slightly
+            }
 
-        angle += angleIncrement * deltaTime; // Increment angle based on time to decouple from frame rate
-        drawStar(canvas.width / 2 + centerX - (rwhMax / 2), canvas.height / 2 + centerY - (rwhMax / 2), Math.min(canvas.width, canvas.height) * 0.4, angle);
-        pixelate(currentTime); // Pass currentTime to the pixelate function
+            angle += angleIncrement * deltaTime; // Increment angle based on time to decouple from frame rate
+            drawStar(centerX, centerY, Math.min(canvas.width, canvas.height) * 0.4, angle);
+            pixelate(currentTime); // Pass currentTime to the pixelate function
+        }
         requestAnimationFrame(animate);
     }
 
