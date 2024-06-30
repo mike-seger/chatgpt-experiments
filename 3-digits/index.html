@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3 Digits Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #statements {
+            margin-top: 20px;
+        }
+        #debugContainer {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>3 Digits Game</h1>
+    <button id="generateBtn">Generate Statements</button>
+    <label><input type="checkbox" id="debugCheckbox"> Debug</label>
+    <div id="statements"></div>
+    <div id="debugContainer"></div>
+
+    <script>
+        document.getElementById('generateBtn').addEventListener('click', generateStatements);
+
+        function generateStatements() {
+            const secretNumber = generateRandomNumber();
+            const statements = createStatements(secretNumber);
+
+            const statementsDiv = document.getElementById('statements');
+            statementsDiv.innerHTML = '';
+            statements.forEach(statement => {
+                const p = document.createElement('p');
+                p.textContent = statement;
+                statementsDiv.appendChild(p);
+            });
+        }
+
+        function generateRandomNumber() {
+            return String(Math.floor(Math.random() * 1000)).padStart(3, '0'); // Generate a random 3-digit number
+        }
+
+        function createStatements(secretNumber) {
+            let statements = [];
+            let remainingPossibilities = Array.from({ length: 1000 }, (_, i) => String(i).padStart(3, '0'));
+
+            while (remainingPossibilities.length > 1) {
+                let randomNum = remainingPossibilities[Math.floor(Math.random() * remainingPossibilities.length)];
+
+                let comparison = compareNumbers(secretNumber, randomNum);
+                let newPossibilities = filterPossibilities(remainingPossibilities, randomNum, comparison);
+
+                if (newPossibilities.length > 0 && newPossibilities.length < remainingPossibilities.length) {
+                    remainingPossibilities = newPossibilities;
+                    let debugInfo = document.getElementById('debugCheckbox').checked ? ` (Remaining possibilities: ${remainingPossibilities.length}, Possible numbers: ${remainingPossibilities.join(', ')})` : ` (Remaining possibilities: ${remainingPossibilities.length})`;
+                    statements.push(`${randomNum}: ${comparison}${debugInfo}`);
+                }
+
+                remainingPossibilities = remainingPossibilities.filter(num => num !== randomNum);
+            }
+
+            // Ensure the final statement does not reveal the secret number itself
+            if (remainingPossibilities.length === 1 && remainingPossibilities[0] !== secretNumber) {
+                let finalGuess = remainingPossibilities[0];
+                let finalComparison = compareNumbers(secretNumber, finalGuess);
+                let debugInfo = document.getElementById('debugCheckbox').checked ? ` (Remaining possibilities: 1, Possible number: ${finalGuess})` : ` (Remaining possibilities: 1)`;
+                statements.push(`${finalGuess}: ${finalComparison}${debugInfo}`);
+            }
+
+            return statements;
+        }
+
+        function compareNumbers(secret, guess) {
+            let rightPosition = 0;
+            let wrongPosition = 0;
+            let secretArr = secret.split('');
+            let guessArr = guess.split('');
+            let secretCount = Array(10).fill(0);
+            let guessCount = Array(10).fill(0);
+
+            guessArr.forEach((digit, index) => {
+                if (secretArr[index] === digit) {
+                    rightPosition++;
+                } else {
+                    secretCount[parseInt(secretArr[index])]++;
+                    guessCount[parseInt(digit)]++;
+                }
+            });
+
+            for (let i = 0; i < 10; i++) {
+                wrongPosition += Math.min(secretCount[i], guessCount[i]);
+            }
+
+            if (rightPosition === 0 && wrongPosition === 0) {
+                return '0 correct digits';
+            }
+
+            let parts = [];
+            if (rightPosition > 0) {
+                parts.push(`${rightPosition} ${rightPosition === 1 ? 'digit' : 'digits'} in the right position`);
+            }
+            if (wrongPosition > 0) {
+                parts.push(`${wrongPosition} ${wrongPosition === 1 ? 'digit' : 'digits'} in the wrong position`);
+            }
+
+            return parts.join(' and ');
+        }
+
+        function filterPossibilities(remainingPossibilities, guess, comparison) {
+            return remainingPossibilities.filter(num => compareNumbers(num, guess) === comparison);
+        }
+    </script>
+</body>
+</html>
